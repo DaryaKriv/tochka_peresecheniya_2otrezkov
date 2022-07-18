@@ -1,0 +1,139 @@
+class Intersections
+{
+    // Вычисление точки пересечения отрезков.
+    public static bool SegmentSegment(Point r1, Point r2, Point p1, Point p2, out Point pCross, out Info info)
+    {
+        // Параметрическое уравнение отрезка
+        // x = x0 + vt
+        // y = y0 + wt
+        // где v = x1 - x0
+        //     w = y1 - y0
+        // при 0 <= t <= 1
+        
+
+        // Оповещение о событиях пересечения или не пересечения.
+        info = new Info();
+
+        // Координаты направления вектора синего отрезка
+        double v = r2.X - r1.X;
+        double w = r2.Y - r1.Y;
+
+        // Координаты направления вектора красного отрезка
+        double v2 = p2.X - p1.X;
+        double w2 = p2.Y - p1.Y;
+
+        // ===== Частные случаи не пересечения =====
+
+        // Отрезки должны быть определены
+        if (v == 0 && w == 0 && v2 == 0 && w2 == 0)
+        {
+            info.Id = 10;
+            info.Message = "Отрезки неопределённы";
+
+            return false;
+        }
+        else if (v == 0 && w == 0)
+        {
+            info.Id = 11;
+            info.Message = "Синий отрезка неопределён";
+
+            return false;
+        }
+        else if (v2 == 0 && w2 == 0)
+        {
+            info.Id = 12;
+            info.Message = "Красный отрезка неопределён";
+
+            return false;
+        }
+
+        // Для вычисления параллельности отрезка 
+        // необходимо сравнить направления их векторов.
+
+        // Вычисляем длины векторов
+        double lenBlue = Math.Sqrt(v * v + w * w);
+        double lenRed = Math.Sqrt(v2 * v2 + w2 * w2);
+
+        // Нормализация векторов - создание единичного вектора направления
+        double x = v / lenBlue;
+        double y = w / lenBlue;
+        double x2 = v2 / lenRed;
+        double y2 = w2 / lenRed;
+
+        // Точность совпадения величин double
+        double epsilon = 0.000001;
+
+        // Проверка на совпадение
+        if (r1.X == p1.X && r1.Y == p1.Y && r2.X == p2.X && r2.Y == p2.Y)
+        {
+            info.Id = 20;
+            info.Message = "Отрезки совпадают";
+
+            return false;
+        }
+
+        // Проверка на параллельность с определенной точностью.
+        if (Math.Abs(x - x2) < epsilon && Math.Abs(y - y2) < epsilon)
+        {
+            info.Id = 21;
+            info.Message = "Отрезки параллельны";
+            return false;
+        }
+
+        // ===== /Частные случаи не пересечения =====
+
+
+        // ===== Вычисление точки пересечения =====
+
+        // Проверка факта пересечения
+        // x = p1.X + v2t2
+        // y = p1.Y + w2t2
+
+        // r1.X + vt = p1.X + v2t2 => vt = p1.X - r1.X + v2t2 =>
+        // t = (p1.X - r1.X + v2t2) / v - (у.1) соотношение t-параметров
+        //
+        // Вычисление одного параметра с заменой соотношением другого
+        // r1.Y + wt = p1.Y + w2t2 => wt = p1.Y - r1.Y + w2t2 => t = (p1.Y - r1.Y + w2t2) / w
+        // (p1.X - r1.X + v2t2) / v = (p1.Y - r1.Y + w2t2) / w =>
+        // (p1.X - r1.X + v2t2) * w = (p1.Y - r1.Y + w2t2) * v =>
+        // w * p1.X - w * r1.X + w * v2t2 = v * p1.Y - v * r1.Y + v * w2t2 =>
+        // w * v2t2 - v * w2t2 = -w * p1.X + w * r1.X + v * p1.Y - v * r1.Y =>
+        // (w * v2 - v * w2) * t2 = -w * p1.X + w * r1.X + v * p1.Y - v * r1.Y =>
+        // t2 = (-w * p1.X + w * r1.X + v * p1.Y - v * r1.Y) / (w * v2 - v * w2) - (у.2)
+        double t2 = (-w * p1.X + w * r1.X + v * p1.Y - v * r1.Y) / (w * v2 - v * w2);
+
+        // t = (p1.X - r1.X + v2t2) / v - (у.1)
+        double t = (p1.X - r1.X + v2 * t2) / v;
+
+        // Если один из параметров меньше 0 и больше 1, значит пересечения нет.
+        if (t < 0 || t > 1 || t2 < 0 || t2 > 1)
+        {
+            info.Id = 20;
+            info.Message = "Пересечения нет";
+
+
+            return false;
+        }
+
+        // Координаты точки пересечения
+        pCross.X = p1.X + v2 * t2;
+        pCross.Y = p1.Y + w2 * t2;
+
+
+        info.Id = 0;
+        info.Message = "Пересечение есть";
+
+        return true;
+
+        // ===== /Вычисление точки пересечения =====
+    }
+}
+
+public class Info
+{
+    // Для визуального сообщения.
+    public string Message;
+
+    // Для автоматических действий.
+    public int Id;
+}
